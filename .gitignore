@@ -1,9 +1,0 @@
-.env
-*.pyc
-*.pyo
-*.db
-venv/
-.venv/
-__pycache__/
-.git/
-ngrok.exe

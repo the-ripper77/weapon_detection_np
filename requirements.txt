@@ -1,4 +1,0 @@
-requests
-numpy
-pyqt5
-opencv-python-headless
