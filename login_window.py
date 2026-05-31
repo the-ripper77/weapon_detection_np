@@ -1,6 +1,5 @@
-# login_window.py
-from PyQt5.QtWidgets import QMainWindow
-from PyQt5.uic import loadUi
+from PyQt6.QtWidgets import QMainWindow
+from PyQt6.uic import loadUi
 from settings_window import SettingsWindow
 
 class LoginWindow(QMainWindow):

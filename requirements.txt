@@ -1,4 +1,13 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+
+ultralytics>=8.4.0
+torch==2.0.1+cpu
+
+numpy==1.26.4
+opencv-python==4.10.0.84
+PyQt6>=6.6.1
+
+flask
+pyngrok
+python-dotenv
 requests
-numpy
-pyqt5
-opencv-python-headless
