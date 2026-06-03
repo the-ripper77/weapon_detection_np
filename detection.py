@@ -76,15 +76,15 @@ class Detection(QThread):
         return annotated
 
     def _save_high_confidence_frame(self, frame, confs):
-        """Save frame if any detection has confidence > 80%."""
+        """Save frame if any detection has confidence > 90%."""
         current_time = time.time()
         
         # Check if enough time has passed since last save
         if current_time - self.last_save_time < self.save_interval:
             return
         
-        # Check if any confidence > 0.8 (80%)
-        has_high_confidence = any(float(conf) > 0.8 for conf in confs) if confs else False
+        # Check if any confidence > 0.9 (90%)
+        has_high_confidence = any(float(conf) > 0.9 for conf in confs) if confs else False
         
         if has_high_confidence:
             # Use the specified alert_img directory
