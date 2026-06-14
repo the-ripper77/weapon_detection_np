@@ -32,10 +32,9 @@
                 radial-gradient(circle at 90% 85%, rgba(0,122,255,.05) 0%, transparent 40%);
             overflow-x: hidden;
         }
-
         /* ─── HEADER ─────────────────────────────── */
         header {
-            width: 100%; max-width: 1100px;
+            width: 100%; max-width: 1600px;
             padding: 1.2rem 1rem;
             display: flex; justify-content: space-between; align-items: center;
         }
@@ -60,10 +59,10 @@
         @keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
         .badge.offline { background:rgba(156,163,175,.1); border-color:rgba(156,163,175,.2); color:var(--muted); }
         .badge.offline .dot { background:var(--muted); animation:none; }
-
+ 
         /* ─── MAIN GRID ───────────────────────────── */
         main {
-            width:100%; max-width:1100px; padding:.5rem 1rem 2rem;
+            width:100%; max-width:1600px; padding:.5rem 1rem 2rem;
             display:grid; grid-template-columns:1fr; gap:1.2rem; flex:1;
         }
         @media(min-width:900px){ main{grid-template-columns:3fr 1fr;} }
@@ -208,7 +207,8 @@
 (async function startCameraTransmitter() {
     const video = document.getElementById('local-video');
     const status = document.getElementById('cam-status');
-    const INTERVAL_MS = 80; // ~12 FPS upload
+    const annotatedFeed = document.getElementById('annotated-feed');
+    const INTERVAL_MS = 50; // Upload frame every 50ms (~20 FPS)
 
     // Request rear camera
     let stream;
@@ -216,8 +216,8 @@
         stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: { ideal: 'environment' }, // Rear camera
-                width: { ideal: 640 },
-                height: { ideal: 480 }
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
             },
             audio: false
         });
@@ -233,23 +233,49 @@
 
     // Canvas for frame capture
     const canvas = document.createElement('canvas');
-    canvas.width = 640;
-    canvas.height = 480;
+    canvas.width = 1280;
+    canvas.height = 720;
     const ctx = canvas.getContext('2d');
+
+    // Setup WebSockets URLs
+    const wsProtocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+    
+    // 1. WebSocket for uploading camera frames
+    const uploadWsUrl = wsProtocol + location.host + '/ws/upload';
+    const uploadWs = new WebSocket(uploadWsUrl);
+    uploadWs.binaryType = 'blob';
+
+    uploadWs.onopen = () => console.log("Upload WebSocket connected");
+    uploadWs.onclose = () => console.log("Upload WebSocket disconnected");
+
+    // 2. WebSocket for receiving annotated feed
+    const viewWsUrl = wsProtocol + location.host + '/ws/view';
+    const viewWs = new WebSocket(viewWsUrl);
+    viewWs.binaryType = 'blob';
+
+    viewWs.onmessage = function(event) {
+        const url = URL.createObjectURL(event.data);
+        const oldUrl = annotatedFeed.src;
+        annotatedFeed.src = url;
+        if (oldUrl && oldUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(oldUrl);
+        }
+    };
 
     let uploadBusy = false;
 
     async function uploadFrame() {
         if (uploadBusy || video.readyState < 2) return;
+        if (uploadWs.readyState !== WebSocket.OPEN) return;
         uploadBusy = true;
         try {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-            await fetch('/upload_frame', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ frame: dataUrl })
-            });
+            canvas.toBlob((blob) => {
+                if (blob && uploadWs.readyState === WebSocket.OPEN) {
+                    uploadWs.send(blob);
+                }
+                uploadBusy = false;
+            }, 'image/jpeg', 0.6); // 60% quality is very compact and fast
         } catch (e) {
             console.warn('Frame upload failed:', e);
         } finally {
@@ -356,6 +382,27 @@ document.getElementById('btn-aspect').addEventListener('click', () => {
     const wrap = document.getElementById('video-wrap');
     wrap.style.aspectRatio = wrap.style.aspectRatio === '4/3' ? '16/9' : '4/3';
 });
+
+// Setup WebSocket for viewing annotated feed
+const streamImg = document.querySelector('.video-stream');
+const wsProtocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+const viewWsUrl = wsProtocol + location.host + '/ws/view';
+const viewWs = new WebSocket(viewWsUrl);
+viewWs.binaryType = 'blob';
+
+viewWs.onmessage = function(event) {
+    const url = URL.createObjectURL(event.data);
+    const oldUrl = streamImg.src;
+    streamImg.src = url;
+    if (oldUrl && oldUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(oldUrl);
+    }
+};
+
+viewWs.onclose = function() {
+    console.log("View WebSocket disconnected, falling back to MJPEG");
+    streamImg.src = "/video_feed";
+};
 
 // Status polling
 async function poll() {

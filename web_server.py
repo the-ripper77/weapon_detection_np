@@ -4,8 +4,48 @@ import os
 import cv2
 import numpy as np
 import base64
+from flask_sock import Sock
+import threading
 
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
+sock = Sock(app)
+
+# Global registry of active viewer sockets
+view_sockets = []
+view_sockets_lock = threading.Lock()
+
+
+@sock.route('/ws/upload')
+def ws_upload(ws):
+    """Receive raw binary JPEG frames from mobile browser via WebSocket."""
+    from detection import Detection
+    try:
+        while True:
+            frame_bytes = ws.receive()
+            if not frame_bytes:
+                break
+            with Detection.uploaded_frame_lock:
+                Detection.uploaded_frame = frame_bytes
+    except Exception as e:
+        pass
+
+
+@sock.route('/ws/view')
+def ws_view(ws):
+    """Provide real-time binary JPEG frame updates to web client via WebSocket."""
+    with view_sockets_lock:
+        view_sockets.append(ws)
+    try:
+        while True:
+            data = ws.receive(timeout=10)
+            if data is None:
+                break
+    except Exception:
+        pass
+    finally:
+        with view_sockets_lock:
+            if ws in view_sockets:
+                view_sockets.remove(ws)
 
 
 class AppState:

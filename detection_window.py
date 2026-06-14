@@ -128,7 +128,7 @@ class DetectionWindow(QMainWindow):
         self._base_url = base_url
 
         self.detection.changePixmap.connect(self.setImage)
-        self.show()
+        self.showMaximized()
 
         if self._source_type == "mobile":
             # Compute the camera URL

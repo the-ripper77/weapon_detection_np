@@ -106,22 +106,28 @@ class Detection(QThread):
         # Web server frame buffer
         try:
             _, jpeg_buffer = cv2.imencode('.jpg', annotated_frame)
+            frame_bytes = jpeg_buffer.tobytes()
             with Detection.frame_lock:
-                Detection.latest_frame = jpeg_buffer.tobytes()
+                Detection.latest_frame = frame_bytes
             AppState.class_name = self.class_name
+
+            # Broadcast to active WebSockets
+            from web_server import view_sockets, view_sockets_lock
+            with view_sockets_lock:
+                for ws in list(view_sockets):
+                    try:
+                        ws.send(frame_bytes)
+                    except Exception:
+                        pass
         except Exception as e:
-            print(f"Error encoding frame for web: {e}")
+            print(f"Error encoding/broadcasting frame for web: {e}")
 
         # PyQt6 signal for the desktop window
         height, width, channels = annotated_frame.shape
         rgbImage = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
         bytesPerLine = channels * width
         convertToQtFormat = QImage(rgbImage.data, width, height, bytesPerLine, QImage.Format.Format_RGB888)
-        p = convertToQtFormat.scaled(
-            860, 680,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
-        )
+        p = convertToQtFormat.copy()
         self.changePixmap.emit(p)
 
     def run_webcam_or_rtsp(self):
@@ -131,8 +137,8 @@ class Detection(QThread):
             print(f"Connecting to RTSP stream: {self.rtsp_url}")
         else:
             cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
         if not cap.isOpened():
             print("Error: Could not open video capture device.")
@@ -195,6 +201,7 @@ class Detection(QThread):
                     import numpy as np
                     buf = np.frombuffer(Detection.uploaded_frame, dtype=np.uint8)
                     frame = cv2.imdecode(buf, cv2.IMREAD_COLOR)
+                    Detection.uploaded_frame = None  # Consume frame and clear buffer
 
             if frame is None:
                 time.sleep(0.05)

@@ -8,6 +8,7 @@ opencv-python==4.10.0.84
 PyQt6>=6.6.1
 
 flask
-pyngrok
+ngrok
 python-dotenv
 requests
+flask-sock
