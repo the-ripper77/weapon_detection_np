@@ -78,13 +78,124 @@ class SettingsWindow(QMainWindow):
 
         self.monitoring_button.clicked.connect(self.go_to_detection)
 
+        # Wire up alert toggle button
+        self.alert_toggle_btn.clicked.connect(self.on_alert_toggled)
+        self.update_alert_btn_style(False)
+        AppState.alerts_enabled = False
+
+        # Storage combo: hidden by default, shown when alerts are ON
+        self.label_storage.setVisible(False)
+        self.storage_combo.setVisible(False)
+
+        # Set default target class
+        AppState.target_class = "all"
+
+        # Apply layout dynamics for initial source setting
+        self.on_source_changed(0)
+
+    def update_alert_btn_style(self, checked):
+        if checked:
+            self.alert_toggle_btn.setText("Alerts: ON")
+            self.alert_toggle_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #16a34a; /* Green */
+                    color: white;
+                    border: 1px solid #22c55e;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    font-size: 11px;
+                }
+                QPushButton:hover {
+                    background-color: #15803d;
+                }
+            """)
+        else:
+            self.alert_toggle_btn.setText("Alerts: OFF")
+            self.alert_toggle_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #dc2626; /* Red */
+                    color: white;
+                    border: 1px solid #ef4444;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    font-size: 11px;
+                }
+                QPushButton:hover {
+                    background-color: #b91c1c;
+                }
+            """)
+
+    def on_alert_toggled(self, checked):
+        AppState.alerts_enabled = checked
+        self.update_alert_btn_style(checked)
+        # Show/hide storage mode picker
+        self.label_storage.setVisible(checked)
+        self.storage_combo.setVisible(checked)
+        self._reposition_controls()
+
     def on_source_changed(self, index):
         source = self.source_combo.currentText()
         show_rtsp = (source == "CCTV (RTSP)")
         self.label_rtsp.setVisible(show_rtsp)
         self.rtsp_input.setVisible(show_rtsp)
-        # Adjust window height: taller when RTSP field is visible
-        self.setFixedHeight(420 if show_rtsp else 360)
+        self._reposition_controls()
+
+    def _reposition_controls(self):
+        """Reposition all controls dynamically based on visible sections."""
+        x = 15
+        y = 105  # Start after alert toggle button (y=65 + h=30 + spacing)
+
+        # Storage mode (only when alerts ON)
+        show_storage = self.label_storage.isVisible()
+        if show_storage:
+            self.label_storage.move(x, y)
+            y += 20
+            self.storage_combo.move(x, y)
+            y += 35
+        
+        # Object to Detect
+        self.label_target.move(x, y)
+        y += 20
+        self.target_combo.move(x, y)
+        y += 35
+
+        # Camera Source
+        self.label_source.move(x, y)
+        y += 20
+        self.source_combo.move(x, y)
+        y += 35
+
+        # RTSP (only when CCTV selected)
+        show_rtsp = self.label_rtsp.isVisible()
+        if show_rtsp:
+            self.label_rtsp.move(x, y)
+            y += 20
+            self.rtsp_input.move(x, y)
+            y += 30
+
+        # Location
+        self.label_location.move(x, y)
+        y += 20
+        self.location_input.move(x, y)
+        y += 30
+
+        # Contact
+        self.label_contact.move(x, y)
+        y += 20
+        self.contact_input.move(x, y)
+        y += 30
+
+        # QR Code Mode
+        self.label_qr_mode.move(x, y)
+        y += 20
+        self.qr_mode_combo.move(x, y)
+        y += 35
+
+        # Start Monitoring button
+        self.monitoring_button.move(x, y)
+        y += 45
+
+        self.setFixedHeight(y)
 
     def displayInfo(self):
         self.show()
@@ -115,6 +226,7 @@ class SettingsWindow(QMainWindow):
         # Update shared AppState
         AppState.location = location_text
         AppState.contact = contact_text
+        AppState.target_class = self.target_combo.currentText().strip().lower()
         AppState.running = True
         AppState.source_type = source.lower().replace(" (rtsp)", "").replace(" ", "_")
         # Normalize: "webcam", "cctv", "mobile"
@@ -124,6 +236,23 @@ class SettingsWindow(QMainWindow):
             AppState.source_type = "mobile"
         else:
             AppState.source_type = "webcam"
+
+        # Push selected storage mode to dashboard API (in background)
+        if AppState.alerts_enabled:
+            selected_storage = self.storage_combo.currentText()
+            storage_mode = "cloud" if "Cloud" in selected_storage else "local"
+            def _push_storage_mode():
+                try:
+                    import requests as req
+                    req.post(
+                        "http://localhost:8000/api/config",
+                        json={"storage_mode": storage_mode},
+                        timeout=3
+                    )
+                    print(f"Storage mode set to: {storage_mode}")
+                except Exception as e:
+                    print(f"Could not update storage mode on dashboard: {e}")
+            threading.Thread(target=_push_storage_mode, daemon=True).start()
 
         # Pick the best remote URL (ngrok HTTPS preferred, then local IP)
         ngrok_url = getattr(AppState, 'ngrok_url', None)

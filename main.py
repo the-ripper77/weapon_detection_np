@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QApplication
 import sys
-from login_window import LoginWindow
+from settings_window import SettingsWindow
 from dotenv import load_dotenv
 import threading
 from web_server import run_server, AppState
@@ -54,7 +54,8 @@ ngrok_thread = threading.Thread(target=start_ngrok, daemon=True)
 ngrok_thread.start()
 
 app = QApplication(sys.argv)
-mainwidow = LoginWindow()
+mainwindow = SettingsWindow()
+mainwindow.displayInfo()
 
 try:
     sys.exit(app.exec())

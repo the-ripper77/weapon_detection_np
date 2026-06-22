@@ -1,25 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Shield Monitor – {% if mode == 'camera' %}Mobile Camera{% else %}Live Dashboard{% endif %}</title>
+    <title>Threat Monitor – {% if mode == 'camera' %}Mobile Camera{% else %}Live Dashboard{% endif %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #080b11;
-            --card: rgba(17,24,39,0.7);
-            --border: rgba(255,255,255,0.08);
+            --card: rgba(17, 24, 39, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
             --primary: #ff3b30;
-            --pglow: rgba(255,59,48,0.35);
+            --pglow: rgba(255, 59, 48, 0.35);
             --success: #34c759;
             --accent: #007aff;
             --text: #f3f4f6;
             --muted: #9ca3af;
         }
-        * { box-sizing: border-box; margin:0; padding:0; font-family:'Outfit',sans-serif; -webkit-tap-highlight-color:transparent; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             background: var(--bg);
             color: var(--text);
@@ -28,405 +37,730 @@
             flex-direction: column;
             align-items: center;
             background-image:
-                radial-gradient(circle at 10% 15%, rgba(255,59,48,.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 85%, rgba(0,122,255,.05) 0%, transparent 40%);
+                radial-gradient(circle at 10% 15%, rgba(255, 59, 48, .05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(0, 122, 255, .05) 0%, transparent 40%);
             overflow-x: hidden;
         }
+
         /* ─── HEADER ─────────────────────────────── */
         header {
-            width: 100%; max-width: 1600px;
+            width: 100%;
+            max-width: 1600px;
             padding: 1.2rem 1rem;
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .logo { display:flex; align-items:center; gap:.65rem; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+        }
+
         .logo-icon {
-            width:2rem; height:2rem; border-radius:.45rem;
-            background: linear-gradient(135deg,var(--primary),#ff9500);
-            display:flex; align-items:center; justify-content:center;
-            box-shadow:0 0 12px var(--pglow);
+            width: 2rem;
+            height: 2rem;
+            border-radius: .45rem;
+            background: linear-gradient(135deg, var(--primary), #ff9500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px var(--pglow);
             animation: pls 2s infinite alternate;
         }
-        @keyframes pls { from{box-shadow:0 0 4px var(--pglow)} to{box-shadow:0 0 14px var(--pglow)} }
-        .logo-icon svg { width:1.1rem; height:1.1rem; fill:white; }
-        .logo h1 { font-size:1.1rem; font-weight:800; letter-spacing:-.3px; }
-        .logo p { font-size:.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; font-weight:600; }
-        .badge {
-            background: rgba(52,199,89,.12); border:1px solid rgba(52,199,89,.3);
-            color:var(--success); padding:.3rem .7rem; border-radius:2rem;
-            font-size:.7rem; font-weight:600; display:flex; align-items:center; gap:.35rem;
+
+        @keyframes pls {
+            from {
+                box-shadow: 0 0 4px var(--pglow)
+            }
+
+            to {
+                box-shadow: 0 0 14px var(--pglow)
+            }
         }
-        .dot { width:6px; height:6px; border-radius:50%; background:var(--success); animation:blink 1.5s infinite; }
-        @keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
-        .badge.offline { background:rgba(156,163,175,.1); border-color:rgba(156,163,175,.2); color:var(--muted); }
-        .badge.offline .dot { background:var(--muted); animation:none; }
- 
+
+        .logo-icon svg {
+            width: 1.1rem;
+            height: 1.1rem;
+            fill: white;
+        }
+
+        .logo h1 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: -.3px;
+        }
+
+        .logo p {
+            font-size: .6rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .badge {
+            background: rgba(52, 199, 89, .12);
+            border: 1px solid rgba(52, 199, 89, .3);
+            color: var(--success);
+            padding: .3rem .7rem;
+            border-radius: 2rem;
+            font-size: .7rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: .3
+            }
+
+            50% {
+                opacity: 1
+            }
+        }
+
+        .badge.offline {
+            background: rgba(156, 163, 175, .1);
+            border-color: rgba(156, 163, 175, .2);
+            color: var(--muted);
+        }
+
+        .badge.offline .dot {
+            background: var(--muted);
+            animation: none;
+        }
+
         /* ─── MAIN GRID ───────────────────────────── */
         main {
-            width:100%; max-width:1600px; padding:.5rem 1rem 2rem;
-            display:grid; grid-template-columns:1fr; gap:1.2rem; flex:1;
+            width: 100%;
+            max-width: 1600px;
+            padding: .5rem 1rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+            flex: 1;
         }
-        @media(min-width:900px){ main{grid-template-columns:3fr 1fr;} }
+
+        @media(min-width:900px) {
+            main {
+                grid-template-columns: 3fr 1fr;
+            }
+        }
 
         /* ─── GLASS CARD ──────────────────────────── */
         .card {
-            background: var(--card); border:1px solid var(--border);
-            border-radius:1.2rem; backdrop-filter:blur(16px);
-            padding:1.2rem; box-shadow:0 8px 32px rgba(0,0,0,.35);
-            display:flex; flex-direction:column; gap:1rem; overflow:hidden;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 1.2rem;
+            backdrop-filter: blur(16px);
+            padding: 1.2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
         }
 
         /* ─── STREAM SECTION ──────────────────────── */
-        .stream-header { display:flex; justify-content:space-between; align-items:center; }
-        .stream-title { font-size:1rem; font-weight:600; }
+        .stream-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stream-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
         .btn-icon {
-            background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
-            color:var(--text); width:2.1rem; height:2.1rem; border-radius:.65rem;
-            display:flex; align-items:center; justify-content:center; cursor:pointer;
-            transition:all .2s; user-select:none;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: var(--text);
+            width: 2.1rem;
+            height: 2.1rem;
+            border-radius: .65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .2s;
+            user-select: none;
         }
-        .btn-icon:hover { background:rgba(255,255,255,.14); transform:translateY(-2px); }
-        .btn-icon svg { width:1rem; height:1rem; fill:currentColor; }
-        .controls { display:flex; gap:.5rem; }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, .14);
+            transform: translateY(-2px);
+        }
+
+        .btn-icon svg {
+            width: 1rem;
+            height: 1rem;
+            fill: currentColor;
+        }
+
+        .controls {
+            display: flex;
+            gap: .5rem;
+        }
+
         .video-wrap {
-            width:100%; background:#020406; border-radius:.8rem; overflow:hidden;
-            position:relative; aspect-ratio:16/9; display:flex;
-            align-items:center; justify-content:center;
-            border:1px solid rgba(255,255,255,.04);
+            width: 100%;
+            background: #020406;
+            border-radius: .8rem;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, .04);
         }
-        .video-stream { width:100%; height:100%; object-fit:contain; }
+
+        .video-stream {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
         .live-badge {
-            position:absolute; top:.8rem; left:.8rem;
-            background:rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.1);
-            padding:.25rem .55rem; border-radius:.45rem; font-size:.65rem; font-weight:500;
-            display:flex; align-items:center; gap:.3rem; pointer-events:none; letter-spacing:.5px;
+            position: absolute;
+            top: .8rem;
+            left: .8rem;
+            background: rgba(0, 0, 0, .7);
+            border: 1px solid rgba(255, 255, 255, .1);
+            padding: .25rem .55rem;
+            border-radius: .45rem;
+            font-size: .65rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: .3rem;
+            pointer-events: none;
+            letter-spacing: .5px;
         }
-        .rec { width:8px; height:8px; border-radius:50%; background:var(--primary); box-shadow:0 0 6px var(--primary); animation:pls 1s infinite alternate; }
+
+        .rec {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 6px var(--primary);
+            animation: pls 1s infinite alternate;
+        }
 
         /* ─── SIDE STATS ──────────────────────────── */
         .card-title {
-            font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;
-            color:var(--muted); border-bottom:1px solid var(--border); padding-bottom:.5rem;
+            font-size: .8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: .5rem;
         }
-        .stats { display:flex; flex-direction:column; gap:.8rem; }
+
+        .stats {
+            display: flex;
+            flex-direction: column;
+            gap: .8rem;
+        }
+
         .stat {
-            display:flex; align-items:center; gap:.75rem;
-            background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.03);
-            padding:.65rem; border-radius:.65rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid rgba(255, 255, 255, .03);
+            padding: .65rem;
+            border-radius: .65rem;
         }
+
         .stat-icon {
-            width:1.8rem; height:1.8rem; border-radius:.45rem; display:flex;
-            align-items:center; justify-content:center; flex-shrink:0;
-            background:rgba(0,122,255,.1); border:1px solid rgba(0,122,255,.2); color:var(--accent);
+            width: 1.8rem;
+            height: 1.8rem;
+            border-radius: .45rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: rgba(0, 122, 255, .1);
+            border: 1px solid rgba(0, 122, 255, .2);
+            color: var(--accent);
         }
-        .stat-icon svg { width:.9rem; height:.9rem; fill:currentColor; }
-        .stat-icon.r { background:rgba(255,59,48,.1); border-color:rgba(255,59,48,.2); color:var(--primary); }
-        .stat-icon.g { background:rgba(52,199,89,.1); border-color:rgba(52,199,89,.2); color:var(--success); }
-        .stat-info { display:flex; flex-direction:column; }
-        .stat-label { font-size:.6rem; color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:.5px; }
-        .stat-value { font-size:.8rem; font-weight:700; }
+
+        .stat-icon svg {
+            width: .9rem;
+            height: .9rem;
+            fill: currentColor;
+        }
+
+        .stat-icon.r {
+            background: rgba(255, 59, 48, .1);
+            border-color: rgba(255, 59, 48, .2);
+            color: var(--primary);
+        }
+
+        .stat-icon.g {
+            background: rgba(52, 199, 89, .1);
+            border-color: rgba(52, 199, 89, .2);
+            color: var(--success);
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: .6rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: .5px;
+        }
+
+        .stat-value {
+            font-size: .8rem;
+            font-weight: 700;
+        }
 
         .btn-action {
-            display:flex; align-items:center; justify-content:center; gap:.5rem;
-            padding:.75rem; border-radius:.65rem; font-size:.82rem; font-weight:700;
-            cursor:pointer; transition:all .2s; border:none; outline:none; width:100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .75rem;
+            border-radius: .65rem;
+            font-size: .82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            border: none;
+            outline: none;
+            width: 100%;
         }
-        .btn-action.prim { background:linear-gradient(135deg,var(--primary),#ff453a); color:white; box-shadow:0 4px 14px var(--pglow); }
-        .btn-action.prim:hover { transform:translateY(-2px); filter:brightness(1.1); }
-        .btn-action.sec { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); color:var(--text); }
-        .btn-action.sec:hover { background:rgba(255,255,255,.1); transform:translateY(-2px); }
-        .btn-action svg { width:.95rem; height:.95rem; fill:currentColor; }
 
-        footer { padding:1.2rem; font-size:.65rem; color:var(--muted); text-align:center; border-top:1px solid rgba(255,255,255,.03); width:100%; }
+        .btn-action.prim {
+            background: linear-gradient(135deg, var(--primary), #ff453a);
+            color: white;
+            box-shadow: 0 4px 14px var(--pglow);
+        }
+
+        .btn-action.prim:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .btn-action.sec {
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: var(--text);
+        }
+
+        .btn-action.sec:hover {
+            background: rgba(255, 255, 255, .1);
+            transform: translateY(-2px);
+        }
+
+        .btn-action svg {
+            width: .95rem;
+            height: .95rem;
+            fill: currentColor;
+        }
+
+        footer {
+            padding: 1.2rem;
+            font-size: .65rem;
+            color: var(--muted);
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, .03);
+            width: 100%;
+        }
 
         /* ─── CAMERA TRANSMITTER MODE ─────────────── */
         #camera-mode {
-            width:100%; max-width:540px; margin:0 auto;
-            display:flex; flex-direction:column; align-items:center; gap:1rem;
-            padding:.5rem 1rem 2rem;
+            width: 100%;
+            max-width: 540px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: .5rem 1rem 2rem;
         }
+
         .cam-card {
-            width:100%; background:var(--card); border:1px solid var(--border);
-            border-radius:1.2rem; backdrop-filter:blur(16px); padding:1.2rem;
-            display:flex; flex-direction:column; gap:.8rem;
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 1.2rem;
+            backdrop-filter: blur(16px);
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: .8rem;
         }
-        .cam-title { font-size:1rem; font-weight:700; }
-        .cam-subtitle { font-size:.78rem; color:var(--muted); line-height:1.5; }
+
+        .cam-title {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .cam-subtitle {
+            font-size: .78rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
         #local-video {
-            width:100%; border-radius:.8rem; background:#020406;
-            aspect-ratio:4/3; object-fit:cover;
-            border:1px solid rgba(255,255,255,.06); transform:scaleX(-1); /* mirror for selfie */
+            width: 100%;
+            border-radius: .8rem;
+            background: #020406;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, .06);
+            transform: scaleX(-1);
+            /* mirror for selfie */
         }
+
         #cam-status {
-            font-size:.75rem; font-weight:600; padding:.4rem .8rem;
-            border-radius:2rem; text-align:center;
-            background:rgba(52,199,89,.12); border:1px solid rgba(52,199,89,.3); color:var(--success);
+            font-size: .75rem;
+            font-weight: 600;
+            padding: .4rem .8rem;
+            border-radius: 2rem;
+            text-align: center;
+            background: rgba(52, 199, 89, .12);
+            border: 1px solid rgba(52, 199, 89, .3);
+            color: var(--success);
         }
-        #cam-status.warn { background:rgba(255,149,0,.12); border-color:rgba(255,149,0,.3); color:#ff9500; }
-        #cam-status.err { background:rgba(255,59,48,.1); border-color:rgba(255,59,48,.3); color:var(--primary); }
-        #annotated-feed { width:100%; border-radius:.8rem; background:#020406; aspect-ratio:4/3; object-fit:contain; border:1px solid rgba(255,255,255,.06); }
-        .cam-sep { width:100%; height:1px; background:var(--border); }
+
+        #cam-status.warn {
+            background: rgba(255, 149, 0, .12);
+            border-color: rgba(255, 149, 0, .3);
+            color: #ff9500;
+        }
+
+        #cam-status.err {
+            background: rgba(255, 59, 48, .1);
+            border-color: rgba(255, 59, 48, .3);
+            color: var(--primary);
+        }
+
+        #annotated-feed {
+            width: 100%;
+            border-radius: .8rem;
+            background: #020406;
+            aspect-ratio: 4/3;
+            object-fit: contain;
+            border: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .cam-sep {
+            width: 100%;
+            height: 1px;
+            background: var(--border);
+        }
     </style>
 </head>
+
 <body>
 
-<header>
-    <div class="logo">
-        <div class="logo-icon">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+            </div>
+            <div>
+                <h1>THREAT MONITOR</h1>
+            </div>
         </div>
-        <div>
-            <h1>SHIELD MONITOR</h1>
-            <p>AI Threat Detection</p>
+        <div class="badge" id="conn-badge">
+            <div class="dot"></div>
+            <span id="conn-text">LIVE</span>
+        </div>
+    </header>
+
+    {% if mode == 'camera' %}
+    <!-- ═══════════════════════════════════════════════════ CAMERA TRANSMITTER MODE ═══ -->
+    <div id="camera-mode">
+        <div class="cam-card">
+            <div class="cam-title">📷 Mobile Camera Transmitter</div>
+            <div class="cam-subtitle">Your phone's rear camera is streaming to the detection server. AI threat analysis
+                is running on every frame.</div>
+            <div id="cam-status" class="warn">⏳ Requesting camera access...</div>
+            <video id="local-video" autoplay playsinline muted></video>
+        </div>
+
+        <div class="cam-card">
+            <div class="cam-title">🎯 AI Annotated Feed</div>
+            <div class="cam-subtitle">Live threat detection result from your camera, processed by YOLOv8 on the host
+                machine.</div>
+            <img id="annotated-feed" src="/video_feed" alt="Annotated stream" onerror="this.style.opacity='0.3'">
         </div>
     </div>
-    <div class="badge" id="conn-badge">
-        <div class="dot"></div>
-        <span id="conn-text">LIVE</span>
-    </div>
-</header>
 
-{% if mode == 'camera' %}
-<!-- ═══════════════════════════════════════════════════ CAMERA TRANSMITTER MODE ═══ -->
-<div id="camera-mode">
-    <div class="cam-card">
-        <div class="cam-title">📷 Mobile Camera Transmitter</div>
-        <div class="cam-subtitle">Your phone's rear camera is streaming to the detection server. AI threat analysis is running on every frame.</div>
-        <div id="cam-status" class="warn">⏳ Requesting camera access...</div>
-        <video id="local-video" autoplay playsinline muted></video>
-    </div>
+    <script>
+        (async function startCameraTransmitter() {
+            const video = document.getElementById('local-video');
+            const status = document.getElementById('cam-status');
+            const annotatedFeed = document.getElementById('annotated-feed');
+            const INTERVAL_MS = 50; // Upload frame every 50ms (~20 FPS)
 
-    <div class="cam-card">
-        <div class="cam-title">🎯 AI Annotated Feed</div>
-        <div class="cam-subtitle">Live threat detection result from your camera, processed by YOLOv8 on the host machine.</div>
-        <img id="annotated-feed" src="/video_feed" alt="Annotated stream"
-             onerror="this.style.opacity='0.3'">
-    </div>
-</div>
+            // Request rear camera
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { ideal: 'environment' }, // Rear camera
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                });
+                video.srcObject = stream;
+                status.textContent = '✅ Camera active – streaming to server';
+                status.className = '';
+                document.getElementById('conn-badge').innerHTML = '<div class="dot"></div><span>TRANSMITTING</span>';
+            } catch (err) {
+                status.textContent = '❌ Camera access denied: ' + err.message;
+                status.className = 'err';
+                return;
+            }
 
-<script>
-(async function startCameraTransmitter() {
-    const video = document.getElementById('local-video');
-    const status = document.getElementById('cam-status');
-    const annotatedFeed = document.getElementById('annotated-feed');
-    const INTERVAL_MS = 50; // Upload frame every 50ms (~20 FPS)
+            // Canvas for frame capture
+            const canvas = document.createElement('canvas');
+            canvas.width = 1280;
+            canvas.height = 720;
+            const ctx = canvas.getContext('2d');
 
-    // Request rear camera
-    let stream;
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: 'environment' }, // Rear camera
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            },
-            audio: false
-        });
-        video.srcObject = stream;
-        status.textContent = '✅ Camera active – streaming to server';
-        status.className = '';
-        document.getElementById('conn-badge').innerHTML = '<div class="dot"></div><span>TRANSMITTING</span>';
-    } catch (err) {
-        status.textContent = '❌ Camera access denied: ' + err.message;
-        status.className = 'err';
-        return;
-    }
+            // Setup WebSockets URLs
+            const wsProtocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
 
-    // Canvas for frame capture
-    const canvas = document.createElement('canvas');
-    canvas.width = 1280;
-    canvas.height = 720;
-    const ctx = canvas.getContext('2d');
+            // 1. WebSocket for uploading camera frames
+            const uploadWsUrl = wsProtocol + location.host + '/ws/upload';
+            const uploadWs = new WebSocket(uploadWsUrl);
+            uploadWs.binaryType = 'blob';
 
-    // Setup WebSockets URLs
-    const wsProtocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
-    
-    // 1. WebSocket for uploading camera frames
-    const uploadWsUrl = wsProtocol + location.host + '/ws/upload';
-    const uploadWs = new WebSocket(uploadWsUrl);
-    uploadWs.binaryType = 'blob';
+            uploadWs.onopen = () => console.log("Upload WebSocket connected");
+            uploadWs.onclose = () => console.log("Upload WebSocket disconnected");
 
-    uploadWs.onopen = () => console.log("Upload WebSocket connected");
-    uploadWs.onclose = () => console.log("Upload WebSocket disconnected");
+            // 2. WebSocket for receiving annotated feed
+            const viewWsUrl = wsProtocol + location.host + '/ws/view';
+            const viewWs = new WebSocket(viewWsUrl);
+            viewWs.binaryType = 'blob';
 
-    // 2. WebSocket for receiving annotated feed
-    const viewWsUrl = wsProtocol + location.host + '/ws/view';
-    const viewWs = new WebSocket(viewWsUrl);
-    viewWs.binaryType = 'blob';
-
-    viewWs.onmessage = function(event) {
-        const url = URL.createObjectURL(event.data);
-        const oldUrl = annotatedFeed.src;
-        annotatedFeed.src = url;
-        if (oldUrl && oldUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(oldUrl);
-        }
-    };
-
-    let uploadBusy = false;
-
-    async function uploadFrame() {
-        if (uploadBusy || video.readyState < 2) return;
-        if (uploadWs.readyState !== WebSocket.OPEN) return;
-        uploadBusy = true;
-        try {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob((blob) => {
-                if (blob && uploadWs.readyState === WebSocket.OPEN) {
-                    uploadWs.send(blob);
+            viewWs.onmessage = function (event) {
+                const url = URL.createObjectURL(event.data);
+                const oldUrl = annotatedFeed.src;
+                annotatedFeed.src = url;
+                if (oldUrl && oldUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(oldUrl);
                 }
-                uploadBusy = false;
-            }, 'image/jpeg', 0.6); // 60% quality is very compact and fast
-        } catch (e) {
-            console.warn('Frame upload failed:', e);
-        } finally {
-            uploadBusy = false;
+            };
+
+            let uploadBusy = false;
+
+            async function uploadFrame() {
+                if (uploadBusy || video.readyState < 2) return;
+                if (uploadWs.readyState !== WebSocket.OPEN) return;
+                uploadBusy = true;
+                try {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob((blob) => {
+                        if (blob && uploadWs.readyState === WebSocket.OPEN) {
+                            uploadWs.send(blob);
+                        }
+                        uploadBusy = false;
+                    }, 'image/jpeg', 0.6); // 60% quality is very compact and fast
+                } catch (e) {
+                    console.warn('Frame upload failed:', e);
+                } finally {
+                    uploadBusy = false;
+                }
+            }
+
+            setInterval(uploadFrame, INTERVAL_MS);
+        })();
+    </script>
+
+    {% else %}
+    <!-- ═══════════════════════════════════════════════════ DASHBOARD VIEWER MODE ════ -->
+    <main>
+        <!-- Left: Video Stream -->
+        <section class="card">
+            <div class="stream-header">
+                <span class="stream-title">Live Monitoring Feed</span>
+                <div class="controls">
+                    <button class="btn-icon" id="btn-aspect" title="Toggle Aspect Ratio">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M4 4h7v2H5v6H3V5c0-.55.45-1 1-1zM21 4c.55 0 1 .45 1 1v7h-2V6h-6V4h7zM4 20h7v-2H5v-6H3v7c0 .55.45 1 1 1zM21 20c.55 0 1-.45 1-1v-7h-2v6h-6v2h7z" />
+                        </svg>
+                    </button>
+                    <button class="btn-icon" id="btn-fs" title="Fullscreen">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="video-wrap" id="video-wrap">
+                <img src="/video_feed" class="video-stream" alt="Live Stream" onerror="this.style.opacity='0.3'">
+                <div class="live-badge">
+                    <div class="rec"></div>
+                    <span id="overlay-text">ACTIVE STREAM</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right: Stats -->
+        <aside>
+            <div class="card" style="height:100%; justify-content:space-between;">
+                <div class="card-title">System Info</div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-icon r">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-8h-2V7h2v2z" />
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Target Class</span>
+                            <span class="stat-value" id="v-class">{{ class_name if class_name else 'Weapon' }}</span>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Location</span>
+                            <span class="stat-value" id="v-loc">{{ location }}</span>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon g">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02C8.78 6.2 8.59 5.01 8.59 3.78 8.59 3.24 8.14 2.79 7.6 2.79H4.19C3.65 2.79 3 3.24 3 3.78 3 13.18 10.61 20.79 20.01 20.79c.54 0 .99-.45.99-.99v-3.42c0-.54-.45-.99-.99-1z" />
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Alert Contact</span>
+                            <span class="stat-value" id="v-contact">{{ contact }}</span>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Source</span>
+                            <span class="stat-value" id="v-source">–</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:.6rem;margin-top:1rem;">
+                    <button class="btn-action prim" onclick="location.reload()">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                        </svg>
+                        Refresh Stream
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        // Fullscreen
+        document.getElementById('btn-fs').addEventListener('click', () => {
+            const wrap = document.getElementById('video-wrap');
+            if (!document.fullscreenElement) {
+                (wrap.requestFullscreen || wrap.webkitRequestFullscreen || wrap.msRequestFullscreen).call(wrap);
+            } else {
+                document.exitFullscreen && document.exitFullscreen();
+            }
+        });
+
+        // Aspect ratio toggle
+        document.getElementById('btn-aspect').addEventListener('click', () => {
+            const wrap = document.getElementById('video-wrap');
+            wrap.style.aspectRatio = wrap.style.aspectRatio === '4/3' ? '16/9' : '4/3';
+        });
+
+        // Setup WebSocket for viewing annotated feed
+        const streamImg = document.querySelector('.video-stream');
+        const wsProtocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const viewWsUrl = wsProtocol + location.host + '/ws/view';
+        const viewWs = new WebSocket(viewWsUrl);
+        viewWs.binaryType = 'blob';
+
+        viewWs.onmessage = function (event) {
+            const url = URL.createObjectURL(event.data);
+            const oldUrl = streamImg.src;
+            streamImg.src = url;
+            if (oldUrl && oldUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(oldUrl);
+            }
+        };
+
+        viewWs.onclose = function () {
+            console.log("View WebSocket disconnected, falling back to MJPEG");
+            streamImg.src = "/video_feed";
+        };
+
+        // Status polling
+        async function poll() {
+            try {
+                const r = await fetch('/status');
+                const d = await r.json();
+                document.getElementById('v-class').textContent = d.class_name || 'Weapon';
+                document.getElementById('v-loc').textContent = d.location || '–';
+                document.getElementById('v-contact').textContent = d.contact || '–';
+                const src = (d.source_type || 'webcam').toUpperCase();
+                document.getElementById('v-source').textContent = src;
+                document.getElementById('overlay-text').textContent = d.running ? 'ACTIVE STREAM' : 'PAUSED';
+                const badge = document.getElementById('conn-badge');
+                if (!d.running) {
+                    badge.className = 'badge offline';
+                    document.getElementById('conn-text').textContent = 'OFFLINE';
+                }
+            } catch (e) { }
         }
-    }
+        setInterval(poll, 3000);
+        poll();
+    </script>
+    {% endif %}
 
-    setInterval(uploadFrame, INTERVAL_MS);
-})();
-</script>
-
-{% else %}
-<!-- ═══════════════════════════════════════════════════ DASHBOARD VIEWER MODE ════ -->
-<main>
-    <!-- Left: Video Stream -->
-    <section class="card">
-        <div class="stream-header">
-            <span class="stream-title">Live Monitoring Feed</span>
-            <div class="controls">
-                <button class="btn-icon" id="btn-aspect" title="Toggle Aspect Ratio">
-                    <svg viewBox="0 0 24 24"><path d="M4 4h7v2H5v6H3V5c0-.55.45-1 1-1zM21 4c.55 0 1 .45 1 1v7h-2V6h-6V4h7zM4 20h7v-2H5v-6H3v7c0 .55.45 1 1 1zM21 20c.55 0 1-.45 1-1v-7h-2v6h-6v2h7z"/></svg>
-                </button>
-                <button class="btn-icon" id="btn-fs" title="Fullscreen">
-                    <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-                </button>
-            </div>
-        </div>
-        <div class="video-wrap" id="video-wrap">
-            <img src="/video_feed" class="video-stream" alt="Live Stream"
-                 onerror="this.style.opacity='0.3'">
-            <div class="live-badge">
-                <div class="rec"></div>
-                <span id="overlay-text">ACTIVE STREAM</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- Right: Stats -->
-    <aside>
-        <div class="card" style="height:100%; justify-content:space-between;">
-            <div class="card-title">System Info</div>
-            <div class="stats">
-                <div class="stat">
-                    <div class="stat-icon r">
-                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-8h-2V7h2v2z"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-label">Target Class</span>
-                        <span class="stat-value" id="v-class">{{ class_name if class_name else 'Weapon' }}</span>
-                    </div>
-                </div>
-                <div class="stat">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-label">Location</span>
-                        <span class="stat-value" id="v-loc">{{ location }}</span>
-                    </div>
-                </div>
-                <div class="stat">
-                    <div class="stat-icon g">
-                        <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02C8.78 6.2 8.59 5.01 8.59 3.78 8.59 3.24 8.14 2.79 7.6 2.79H4.19C3.65 2.79 3 3.24 3 3.78 3 13.18 10.61 20.79 20.01 20.79c.54 0 .99-.45.99-.99v-3.42c0-.54-.45-.99-.99-1z"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-label">Alert Contact</span>
-                        <span class="stat-value" id="v-contact">{{ contact }}</span>
-                    </div>
-                </div>
-                <div class="stat">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-label">Source</span>
-                        <span class="stat-value" id="v-source">–</span>
-                    </div>
-                </div>
-            </div>
-
-            <div style="display:flex;flex-direction:column;gap:.6rem;margin-top:1rem;">
-                <button class="btn-action prim" onclick="location.reload()">
-                    <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-                    Refresh Stream
-                </button>
-            </div>
-        </div>
-    </aside>
-</main>
-
-<script>
-// Fullscreen
-document.getElementById('btn-fs').addEventListener('click', () => {
-    const wrap = document.getElementById('video-wrap');
-    if (!document.fullscreenElement) {
-        (wrap.requestFullscreen || wrap.webkitRequestFullscreen || wrap.msRequestFullscreen).call(wrap);
-    } else {
-        document.exitFullscreen && document.exitFullscreen();
-    }
-});
-
-// Aspect ratio toggle
-document.getElementById('btn-aspect').addEventListener('click', () => {
-    const wrap = document.getElementById('video-wrap');
-    wrap.style.aspectRatio = wrap.style.aspectRatio === '4/3' ? '16/9' : '4/3';
-});
-
-// Setup WebSocket for viewing annotated feed
-const streamImg = document.querySelector('.video-stream');
-const wsProtocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
-const viewWsUrl = wsProtocol + location.host + '/ws/view';
-const viewWs = new WebSocket(viewWsUrl);
-viewWs.binaryType = 'blob';
-
-viewWs.onmessage = function(event) {
-    const url = URL.createObjectURL(event.data);
-    const oldUrl = streamImg.src;
-    streamImg.src = url;
-    if (oldUrl && oldUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(oldUrl);
-    }
-};
-
-viewWs.onclose = function() {
-    console.log("View WebSocket disconnected, falling back to MJPEG");
-    streamImg.src = "/video_feed";
-};
-
-// Status polling
-async function poll() {
-    try {
-        const r = await fetch('/status');
-        const d = await r.json();
-        document.getElementById('v-class').textContent = d.class_name || 'Weapon';
-        document.getElementById('v-loc').textContent = d.location || '–';
-        document.getElementById('v-contact').textContent = d.contact || '–';
-        const src = (d.source_type || 'webcam').toUpperCase();
-        document.getElementById('v-source').textContent = src;
-        document.getElementById('overlay-text').textContent = d.running ? 'ACTIVE STREAM' : 'PAUSED';
-        const badge = document.getElementById('conn-badge');
-        if (!d.running) {
-            badge.className = 'badge offline';
-            document.getElementById('conn-text').textContent = 'OFFLINE';
-        }
-    } catch(e) {}
-}
-setInterval(poll, 3000);
-poll();
-</script>
-{% endif %}
-
-<footer>&copy; 2026 Shield Monitor AI &mdash; Secure remote monitoring dashboard</footer>
+    <footer>&copy; 2026 Threat Monitor AI &mdash; Secure remote monitoring dashboard</footer>
 </body>
+
 </html>

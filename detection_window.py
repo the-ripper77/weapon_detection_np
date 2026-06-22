@@ -1,11 +1,13 @@
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt6.uic import loadUi
-from PyQt6.QtCore import pyqtSlot, Qt, QEvent
+from PyQt6.QtCore import pyqtSlot, Qt, QEvent, QUrl
 from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from detection import Detection
 from web_server import AppState
 import requests
 import threading
+import os
 
 
 def _fetch_qr_pixmap(url):
@@ -55,6 +57,14 @@ class DetectionWindow(QMainWindow):
         self._base_url = None
         self._qr_shown = False
 
+        # Alert sound player
+        self._audio_output = QAudioOutput()
+        self._audio_output.setVolume(1.0)
+        self._alert_player = QMediaPlayer()
+        self._alert_player.setAudioOutput(self._audio_output)
+        alert_path = os.path.join(os.path.dirname(__file__), 'alert_img', 'alert.mp3')
+        self._alert_player.setSource(QUrl.fromLocalFile(alert_path))
+
     def create_detection_instance(self, source_type="webcam", rtsp_url=""):
         self._source_type = source_type
         if self.detection is None or not self.detection.running:
@@ -73,9 +83,16 @@ class DetectionWindow(QMainWindow):
             self.label_detection.width(),
             self.label_detection.height(),
             Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
+            Qt.TransformationMode.FastTransformation
         )
         self.label_detection.setPixmap(scaled_pixmap)
+
+    @pyqtSlot()
+    def _on_alert(self):
+        """Play alert sound when a high-confidence detection occurs."""
+        self._alert_player.stop()
+        self._alert_player.setPosition(0)
+        self._alert_player.play()
 
     def _show_mobile_waiting_screen(self, camera_url):
         """Show the QR code and waiting message in the video label."""
@@ -128,6 +145,7 @@ class DetectionWindow(QMainWindow):
         self._base_url = base_url
 
         self.detection.changePixmap.connect(self.setImage)
+        self.detection.playAlert.connect(self._on_alert)
         self.showMaximized()
 
         if self._source_type == "mobile":

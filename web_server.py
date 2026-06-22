@@ -55,6 +55,8 @@ class AppState:
     running = False
     source_type = "webcam"   # "webcam", "cctv", "mobile"
     ngrok_url = None
+    alerts_enabled = False
+    target_class = "all"
 
 
 def gen_placeholder():
@@ -136,7 +138,7 @@ def status():
         'running': AppState.running,
         'location': AppState.location,
         'contact': AppState.contact,
-        'class_name': AppState.class_name,
+        'class_name': AppState.target_class.capitalize() if AppState.target_class != "all" else "All Objects",
         'source_type': AppState.source_type,
     })
 

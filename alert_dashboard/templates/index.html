@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Detection Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-color: #3b82f6;
+            --danger-color: #ef4444;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, var(--bg-color) 40%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 1.5rem;
+        }
+
+        .alerts-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .alerts-table th,
+        .alerts-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .alerts-table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            background: rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+        }
+
+        .alerts-table tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .alert-img-thumb {
+            width: 80px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .alert-img-thumb:hover {
+            transform: scale(3.5);
+            z-index: 10;
+            position: relative;
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .page-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .page-btn.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-size-select {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.5rem;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .page-size-select option {
+            background: var(--bg-color);
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 5rem 0;
+            color: var(--text-muted);
+        }
+
+        .btn-refresh {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-refresh:hover {
+            background: #2563eb;
+        }
+
+        .filter-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .filter-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .filter-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* Specifically format date inputs for dark mode */
+        ::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        /* Switch styling */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .switch-label {
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .switch-label.active {
+            color: var(--text-color);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: .3s;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Threat Detection Dashboard</h1>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <button class="btn-refresh" onclick="window.open('http://127.0.0.1:5000/', '_blank')" style="background-color: #2563eb;">Live Monitor</button>
+                <button class="btn-refresh" onclick="fetchAlerts()">Refresh Data</button>
+            </div>
+        </header>
+
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label class="filter-label">Hash ID</label>
+                <input type="text" id="filter-hash" class="filter-input" placeholder="Search ID..."
+                    oninput="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Camera Source</label>
+                <input type="text" id="filter-camera" class="filter-input" placeholder="Search Camera..."
+                    oninput="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Location</label>
+                <input type="text" id="filter-location" class="filter-input" placeholder="Search Location..."
+                    oninput="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Object</label>
+                <input type="text" id="filter-object" class="filter-input" placeholder="Search Object..."
+                    oninput="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Alert Sent To</label>
+                <input type="text" id="filter-sent" class="filter-input" placeholder="Search Email..."
+                    oninput="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Start Date</label>
+                <input type="datetime-local" id="filter-start" class="filter-input" onchange="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">End Date</label>
+                <input type="datetime-local" id="filter-end" class="filter-input" onchange="applyFilters()">
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="alerts-table">
+                <thead>
+                    <tr>
+                        <th>Hash ID</th>
+                        <th>Camera Source</th>
+                        <th>Location</th>
+                        <th>Object</th>
+                        <th>Alert Sent To</th>
+                        <th>Alert Image</th>
+                        <th>Created at</th>
+                    </tr>
+                </thead>
+                <tbody id="alerts-tbody">
+                    <tr>
+                        <td colspan="7" class="empty-state">Loading latest intelligence...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-controls" id="pagination-controls">
+            <!-- Rendered via JS -->
+        </div>
+    </div>
+
+    <script>
+        let globalAlerts = [];
+        let filteredAlerts = [];
+        let currentPage = 1;
+        let pageSize = 10;
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' - ' +
+                date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
+
+        function changePageSize(size) {
+            pageSize = size === 'all' ? 'all' : parseInt(size);
+            currentPage = 1;
+            renderTable();
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        async function fetchAlerts() {
+            try {
+                const response = await fetch('/api/alerts');
+                globalAlerts = await response.json();
+
+                // Sort newest first
+                globalAlerts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                applyFilters();
+            } catch (error) {
+                console.error("Failed to fetch alerts:", error);
+            }
+        }
+
+        function applyFilters() {
+            const hashVal = document.getElementById('filter-hash').value.toLowerCase();
+            const cameraVal = document.getElementById('filter-camera').value.toLowerCase();
+            const locationVal = document.getElementById('filter-location').value.toLowerCase();
+            const objectVal = document.getElementById('filter-object').value.toLowerCase();
+            const sentVal = document.getElementById('filter-sent').value.toLowerCase();
+            const startVal = document.getElementById('filter-start').value;
+            const endVal = document.getElementById('filter-end').value;
+
+            filteredAlerts = globalAlerts.filter(alert => {
+                const matchHash = alert.hash_id ? alert.hash_id.toLowerCase().includes(hashVal) : true;
+                const matchCamera = alert.camera_source ? alert.camera_source.toLowerCase().includes(cameraVal) : true;
+                const matchLocation = alert.location ? alert.location.toLowerCase().includes(locationVal) : true;
+                const matchObject = alert.object_detected ? alert.object_detected.toLowerCase().includes(objectVal) : true;
+                const matchSent = alert.alert_sent_to ? alert.alert_sent_to.toLowerCase().includes(sentVal) : true;
+
+                let matchDate = true;
+                const alertDate = new Date(alert.created_at);
+                if (startVal) {
+                    if (alertDate < new Date(startVal)) matchDate = false;
+                }
+                if (endVal) {
+                    if (alertDate > new Date(endVal)) matchDate = false;
+                }
+
+                return matchHash && matchCamera && matchLocation && matchObject && matchSent && matchDate;
+            });
+
+            // Adjust current page if we filtered out the current page
+            let maxPage = pageSize === 'all' ? 1 : Math.ceil(filteredAlerts.length / pageSize);
+            if (maxPage === 0) maxPage = 1;
+            if (currentPage > maxPage) currentPage = maxPage;
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('alerts-tbody');
+            const pageControls = document.getElementById('pagination-controls');
+            tbody.innerHTML = '';
+
+            if (filteredAlerts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No matching threats found. Area is secure.</td></tr>';
+                pageControls.innerHTML = '';
+                return;
+            }
+
+            let alertsToRender = filteredAlerts;
+            let totalPages = 1;
+
+            if (pageSize !== 'all') {
+                totalPages = Math.ceil(filteredAlerts.length / pageSize);
+                const startIndex = (currentPage - 1) * pageSize;
+                alertsToRender = filteredAlerts.slice(startIndex, startIndex + pageSize);
+            }
+
+            alertsToRender.forEach(alert => {
+                const tr = document.createElement('tr');
+                const imgHtml = alert.image_url
+                    ? `<img src="${alert.image_url}" class="alert-img-thumb" alt="Alert" onclick="window.open('${alert.image_url}', '_blank')">`
+                    : `<span style="color:var(--text-muted)">No Image</span>`;
+
+                tr.innerHTML = `
+                    <td style="font-family: monospace; font-size: 0.9em; color: var(--accent-color);">${alert.hash_id || 'N/A'}</td>
+                    <td>${alert.camera_source || 'Unknown'}</td>
+                    <td>${alert.location || 'Not Specified'}</td>
+                    <td style="text-transform: capitalize; font-weight: bold; color: #ff9800;">${alert.object_detected || 'Unknown'}</td>
+                    <td>${alert.alert_sent_to || 'None'}</td>
+                    <td>${imgHtml}</td>
+                    <td>${formatTime(alert.created_at)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            const container = document.getElementById('pagination-controls');
+
+            let html = `
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <span style="color:var(--text-muted); font-size:0.9rem;">
+                        Showing ${pageSize === 'all' ? 'All' : ((currentPage - 1) * pageSize + 1) + '-' + Math.min(currentPage * pageSize, filteredAlerts.length)} 
+                        of ${filteredAlerts.length}
+                    </span>
+                    <select class="page-size-select" onchange="changePageSize(this.value)">
+                        <option value="5" ${pageSize === 5 ? 'selected' : ''}>5 per page</option>
+                        <option value="10" ${pageSize === 10 ? 'selected' : ''}>10 per page</option>
+                        <option value="25" ${pageSize === 25 ? 'selected' : ''}>25 per page</option>
+                        <option value="50" ${pageSize === 50 ? 'selected' : ''}>50 per page</option>
+                        <option value="all" ${pageSize === 'all' ? 'selected' : ''}>Show All</option>
+                    </select>
+                </div>
+                <div class="page-buttons">
+            `;
+
+            if (pageSize !== 'all' && totalPages > 1) {
+                html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">Previous</button>`;
+
+                let startP = Math.max(1, currentPage - 2);
+                let endP = Math.min(totalPages, startP + 4);
+                if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+                for (let i = startP; i <= endP; i++) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                }
+
+                html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">Next</button>`;
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // Initial fetch
+        fetchAlerts();
+        setInterval(fetchAlerts, 5000);
+    </script>
+</body>
+
+</html>
