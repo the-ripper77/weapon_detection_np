@@ -11,16 +11,18 @@ import os
 
 
 def _fetch_qr_pixmap(url):
-    """Fetch a QR code image as QPixmap for the given URL."""
+    """Generate a QR code image as QPixmap locally for the given URL."""
     try:
-        api_url = f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={url}"
-        response = requests.get(api_url, timeout=6)
-        if response.status_code == 200:
-            pixmap = QPixmap()
-            pixmap.loadFromData(response.content)
-            return pixmap
+        import io
+        import qrcode
+        img = qrcode.make(url)
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.getvalue())
+        return pixmap
     except Exception as e:
-        print(f"Error fetching QR code: {e}")
+        print(f"Error generating QR code: {e}")
     return None
 
 

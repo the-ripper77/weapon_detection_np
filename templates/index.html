@@ -524,6 +524,13 @@
             const annotatedFeed = document.getElementById('annotated-feed');
             const INTERVAL_MS = 50; // Upload frame every 50ms (~20 FPS)
 
+            // Check for secure context and mediaDevices availability
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                status.textContent = '❌ Camera access requires HTTPS (Secure Context). Please enable NGROK (USE_NGROK=True) in .env to get an HTTPS link.';
+                status.className = 'err';
+                return;
+            }
+
             // Request rear camera
             let stream;
             try {

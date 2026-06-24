@@ -201,12 +201,14 @@ class SettingsWindow(QMainWindow):
         self.show()
 
     def fetch_qr_and_show_dialog(self, url):
+        import io
+        import qrcode
         qr_data = None
         try:
-            api_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={url}"
-            response = requests.get(api_url, timeout=6)
-            if response.status_code == 200:
-                qr_data = response.content
+            img = qrcode.make(url)
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            qr_data = buf.getvalue()
         except Exception as e:
             print(f"Error generating QR code: {e}")
 
