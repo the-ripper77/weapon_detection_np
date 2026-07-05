@@ -64,7 +64,7 @@ class DetectionWindow(QMainWindow):
         self._audio_output.setVolume(1.0)
         self._alert_player = QMediaPlayer()
         self._alert_player.setAudioOutput(self._audio_output)
-        alert_path = os.path.join(os.path.dirname(__file__), 'alert_img', 'alert.mp3')
+        alert_path = os.path.join(os.path.dirname(__file__), 'alarm', 'alert.mp3')
         self._alert_player.setSource(QUrl.fromLocalFile(alert_path))
 
     def create_detection_instance(self, source_type="webcam", rtsp_url=""):
